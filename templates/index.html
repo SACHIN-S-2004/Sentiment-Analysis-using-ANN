@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sentiment Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 560px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: #666;
+            margin-bottom: 28px;
+            font-size: 0.95rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 130px;
+            padding: 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            outline: none;
+            transition: border 0.2s;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            border-color: #4f46e5;
+        }
+
+        button {
+            margin-top: 16px;
+            width: 100%;
+            padding: 14px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #3730a3;
+        }
+
+        button:disabled {
+            background: #a5b4fc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+        }
+
+        .result.positive {
+            background: #d1fae5;
+            border: 1.5px solid #6ee7b7;
+        }
+
+        .result.negative {
+            background: #fee2e2;
+            border: 1.5px solid #fca5a5;
+        }
+
+        .result.neutral {
+            background: #e0e7ff;
+            border: 1.5px solid #a5b4fc;
+        }
+
+        .result .emoji {
+            font-size: 2.4rem;
+        }
+
+        .result .label {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-top: 8px;
+            text-transform: capitalize;
+            color: #1a1a2e;
+        }
+
+        .result .confidence {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        .error {
+            margin-top: 16px;
+            color: #dc2626;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Sentiment Analysis</h1>
+        <p class="subtitle">Enter a review to detect whether it's Positive, Negative, or Neutral.</p>
+
+        <textarea id="reviewInput" placeholder="e.g. This movie was absolutely fantastic!"></textarea>
+
+        <button id="analyzeBtn" onclick="analyze()">Analyze</button>
+
+        <div class="result" id="result">
+            <div class="emoji" id="emoji"></div>
+            <div class="label" id="label"></div>
+            <div class="confidence" id="confidence"></div>
+        </div>
+
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        async function analyze() {
+            const text = document.getElementById("reviewInput").value.trim();
+            const btn = document.getElementById("analyzeBtn");
+            const resultBox = document.getElementById("result");
+            const errorBox = document.getElementById("error");
+
+            errorBox.textContent = "";
+            resultBox.style.display = "none";
+
+            if (!text) {
+                errorBox.textContent = "Please enter some text.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Analyzing...";
+
+            try {
+                const res = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ review: text }),
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    errorBox.textContent = data.error;
+                    return;
+                }
+
+                const emojiMap = { positive: "😊", negative: "😞", neutral: "😐" };
+
+                resultBox.className = `result ${data.sentiment}`;
+                document.getElementById("emoji").textContent = emojiMap[data.sentiment];
+                document.getElementById("label").textContent = data.sentiment;
+                document.getElementById("confidence").textContent = `Confidence: ${data.confidence}%`;
+                resultBox.style.display = "block";
+
+            } catch (err) {
+                errorBox.textContent = "Something went wrong. Please try again.";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Analyze";
+            }
+        }
+
+        // Allow Enter key (Ctrl+Enter) to submit
+        document.getElementById("reviewInput").addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && e.ctrlKey) analyze();
+        });
+    </script>
+</body>
+</html>

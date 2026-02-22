@@ -46,11 +46,11 @@ tests = {
         "The product broke after one day. Total garbage.",
     ],
     "NEUTRAL": [
-        "The movie was okay, nothing too great or too bad.",
-        "It was an average film, some parts were good, some were not.",
-        "Not the best, not the worst. Just a regular watch.",
-        "The product works as described. Nothing more, nothing less.",
-        "It was fine. I neither liked nor disliked it.",
+        "The package was received and the contents were correct.",
+        "The box arrived sealed and the product was inside.",
+        "The box was received and the contents matched the order.",
+        "The package arrived and everything inside was correct.",
+        "The product was inside the sealed box when it arrived.",
     ],
 }
 
